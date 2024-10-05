@@ -93,7 +93,7 @@ def generate_overlapping_clusters(output_dir:str)->None:
     """
     print("Generating Overlapping Clusters...")
     centers = [(0, 0), (4, 4), (2, 2)]
-    cluster_std = [1, 1, 1]  # Large std to create overlap
+    cluster_std = [0.9, 0.9, 0.9]  # Large std to create overlap
     X, y = make_blobs(n_samples=1000,
                       centers=centers,
                       cluster_std=cluster_std,
