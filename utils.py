@@ -181,8 +181,9 @@ def evaluate_clustering(X_scaled: np.ndarray,
     # Silhouette Score (only if number of clusters > 1)
     if n_clusters > 1 and len(np.unique(labels)) > 1:
         silhouette_avg = silhouette_score(X_scaled, labels)
-        if verbose:
-            print(f"Silhouette Score: {silhouette_avg:.4f}")
+        # commented out silhouette score for the internal datasets for now TODO
+        # if verbose:
+        #     print(f"Silhouette Score: {silhouette_avg:.4f}")
     else:
         silhouette_avg = None
         if verbose:
