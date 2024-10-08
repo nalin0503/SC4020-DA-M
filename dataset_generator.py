@@ -83,8 +83,8 @@ def generate_moons_and_circles(output_dir: str) -> None:
     # Save to CSV
     df = pd.DataFrame(X, columns=['Feature1', 'Feature2'])
     df['Label'] = y
-    df.to_csv(os.path.join(output_dir, 'moons_circles_no_overlap.csv'), index=False)
-    print("Moons and Circles generated saved to moons_circles_no_overlap.csv\n")
+    df.to_csv(os.path.join(output_dir, 'moons_circles.csv'), index=False)
+    print("Moons and Circles generated saved to moons_circles.csv\n")
 
 def generate_overlapping_clusters(output_dir:str)->None:
     """
@@ -147,11 +147,11 @@ def generate_high_dimensional_data(output_dir:str)->None:
 def main():
     output_dir = 'datasets'
     os.makedirs(output_dir, exist_ok=True)
-    # generate_isotropic_blobs(output_dir)
-    # generate_anisotropic_blobs(output_dir)
-    # generate_moons_and_circles(output_dir)
-    # generate_overlapping_clusters(output_dir)
-    # generate_high_dimensional_data(output_dir)
+    generate_isotropic_blobs(output_dir)
+    generate_anisotropic_blobs(output_dir)
+    generate_moons_and_circles(output_dir)
+    generate_overlapping_clusters(output_dir)
+    generate_high_dimensional_data(output_dir)
     print("All datasets have been generated and saved.")
 
 if __name__ == '__main__':
