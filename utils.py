@@ -142,7 +142,8 @@ def evaluate_clustering(X_scaled: np.ndarray,
                         labels: np.ndarray, 
                         y_true: np.ndarray, 
                         n_clusters: int, 
-                        title: str = ''):
+                        title: str = '',
+                        verbose: bool = True):
     """
     Evaluate clustering performance with AMI, V-measure, and Silhouette Score.
     
@@ -157,23 +158,37 @@ def evaluate_clustering(X_scaled: np.ndarray,
         Number of clusters.
     - title: str
         Title for the evaluation results.
+    - verbose: bool
+        Whether to print the evaluation results. Default is True.
+        
+    Returns:
+    - ami: float
+        Adjusted Mutual Information.
+    - v_measure: float
+        V-measure.
+    - silhouette_avg: float or None
+        Silhouette score, or None if it cannot be computed.
     """
     # Adjusted Mutual Information and V-measure
     ami = adjusted_mutual_info_score(y_true, labels)
     v_measure = v_measure_score(y_true, labels)
 
-    print(f"{title}")
-    print(f"Adjusted Mutual Information: {ami:.4f}")
-    print(f"V-measure: {v_measure:.4f}")
+    if verbose:
+        print(f"{title}")
+        print(f"Adjusted Mutual Information: {ami:.4f}")
+        print(f"V-measure: {v_measure:.4f}")
 
     # Silhouette Score (only if number of clusters > 1)
     if n_clusters > 1 and len(np.unique(labels)) > 1:
         silhouette_avg = silhouette_score(X_scaled, labels)
-        print(f"Silhouette Score: {silhouette_avg:.4f}")
+        if verbose:
+            print(f"Silhouette Score: {silhouette_avg:.4f}")
     else:
         silhouette_avg = None
-        print("Silhouette Score: Cannot be calculated with less than 2 clusters.")
+        if verbose:
+            print("Silhouette Score: Cannot be calculated with less than 2 clusters.")
 
-    print("=====================================================================")
+    if verbose:
+        print("=====================================================================")
 
     return ami, v_measure, silhouette_avg
