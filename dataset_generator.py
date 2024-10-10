@@ -135,7 +135,7 @@ def generate_high_dimensional_data(output_dir:str)->None:
     X, y = shuffle(X, y, random_state=42)
 
     # Standardize features for better performance
-    X = StandardScaler().fit_transform(X)
+    # X = StandardScaler().fit_transform(X)
 
     # Save to CSV
     columns = [f'Feature{i+1}' for i in range(n_features)]
@@ -147,10 +147,10 @@ def generate_high_dimensional_data(output_dir:str)->None:
 def main():
     output_dir = 'datasets'
     os.makedirs(output_dir, exist_ok=True)
-    generate_isotropic_blobs(output_dir)
-    generate_anisotropic_blobs(output_dir)
-    generate_moons_and_circles(output_dir)
-    generate_overlapping_clusters(output_dir)
+    # generate_isotropic_blobs(output_dir)
+    # generate_anisotropic_blobs(output_dir)
+    # generate_moons_and_circles(output_dir)
+    # generate_overlapping_clusters(output_dir)
     generate_high_dimensional_data(output_dir)
     print("All datasets have been generated and saved.")
 
