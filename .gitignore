@@ -1,0 +1,3 @@
+# add all the python-related files
+*.pyc
+__pycache__
