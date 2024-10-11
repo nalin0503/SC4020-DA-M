@@ -114,7 +114,7 @@ def generate_high_dimensional_data(output_dir:str)->None:
     """
     print("Generating High-Dimensional Data with Noise...")
     n_samples = 1000
-    n_features = 50  # High dimensionality
+    n_features = 60  # High dimensionality
     n_informative = 10
     n_clusters = 5
 
@@ -122,8 +122,8 @@ def generate_high_dimensional_data(output_dir:str)->None:
     X_informative, y = make_blobs(n_samples=n_samples,
                                   centers=n_clusters,
                                   n_features=n_informative,
-                                  cluster_std=2.5,
-                                  random_state=42)
+                                  cluster_std=2.65,
+                                  random_state=444)
 
     # Generate noise features
     X_noise = np.random.uniform(-10, 10, size=(n_samples, n_features - n_informative))
