@@ -144,6 +144,82 @@ def generate_high_dimensional_data(output_dir:str)->None:
     df.to_csv(os.path.join(output_dir, 'high_dimensional_data.csv'), index=False)
     print("High-Dimensional Data generated and saved to high_dimensional_data.csv\n")
 
+def generate_anisotropic_high_dimensional_data(output_dir: str) -> None:
+    """
+    Generates a high-dimensional dataset with anisotropic clusters of varying densities,
+    and adds noisy features.
+    """
+    print("Generating Anisotropic High-Dimensional Data with Varying Density Clusters and Noise...")
+    
+    n_samples_per_cluster = [200, 500, 700, 800, 1200]  # Varying densities
+    n_informative = 10   # Number of informative features
+    n_noise = 50         # Number of noisy features
+    n_features = n_informative + n_noise
+    n_clusters = len(n_samples_per_cluster)
+    random_state = 42
+
+    # Set random seed for reproducibility
+    np.random.seed(random_state)
+
+    # Define centers that are close together
+    center_range = (-5, 5)
+    centers = np.random.uniform(center_range[0], center_range[1], size=(n_clusters, n_informative))
+
+    X_list = []
+    y_list = []
+
+    for i, (n_samples, center) in enumerate(zip(n_samples_per_cluster, centers)):
+        # Generate isotropic blobs with specified centers
+        X, _ = make_blobs(n_samples=n_samples,
+                          centers=[center],
+                          n_features=n_informative,
+                          cluster_std=1.2,  # Smaller std for tighter clusters
+                          random_state=random_state + i)
+        
+        # Create an extreme anisotropic transformation
+        from sklearn.utils.extmath import randomized_svd
+
+        # Random rotation
+        U, _, Vt = randomized_svd(np.random.randn(n_informative, n_informative), n_components=n_informative)
+        rotation = U @ Vt
+
+        # Extreme scaling
+        scales = np.ones(n_informative)
+        scales[:5] = np.random.uniform(50, 200, size=5)     # Highly stretch first 5 features
+        scales[5:] = np.random.uniform(0.01, 0.1, size=5)   # Highly compress next 5 features
+        scaling = np.diag(scales)
+
+        # Transformation matrix
+        transformation = rotation @ scaling
+
+        # Apply the transformation
+        X_aniso = X @ transformation
+        
+        X_list.append(X_aniso)
+        y_list.append(np.full(n_samples, i))  # Assign labels
+
+    # Combine clusters
+    X_informative = np.vstack(X_list)
+    y = np.hstack(y_list)
+    total_samples = X_informative.shape[0]
+
+    # Generate noise features
+    X_noise = np.random.uniform(-10, 10, size=(total_samples, n_noise))
+
+    # Combine informative and noise features
+    X = np.hstack((X_informative, X_noise))
+
+    # Shuffle the dataset
+    X, y = shuffle(X, y, random_state=random_state)
+
+    # Save to CSV
+    columns = [f'Feature{i+1}' for i in range(n_features)]
+    df = pd.DataFrame(X, columns=columns)
+    df['Label'] = y
+    df.to_csv(os.path.join(output_dir, 'anisotropic_high_dimensional_data3.csv'), index=False)
+    print("Anisotropic High-Dimensional Data generated and saved to anisotropic_high_dimensional_data3.csv\n")
+
+
 def main():
     output_dir = 'datasets'
     os.makedirs(output_dir, exist_ok=True)
@@ -151,7 +227,8 @@ def main():
     # generate_anisotropic_blobs(output_dir)
     # generate_moons_and_circles(output_dir)
     # generate_overlapping_clusters(output_dir)
-    generate_high_dimensional_data(output_dir)
+    # generate_high_dimensional_data(output_dir)
+    generate_anisotropic_high_dimensional_data(output_dir)
     print("All datasets have been generated and saved.")
 
 if __name__ == '__main__':
