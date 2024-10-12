@@ -1,105 +1,166 @@
-"""
-This script currently contains functions to load a common dataset - `load_dataset`, 
-visualise clustering results - `visualize_clustering_results` and 
-evaluate the clustering results - `evaluate_clustering`
-"""
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.metrics import adjusted_mutual_info_score, v_measure_score, silhouette_score
 from matplotlib import cm
+from sklearn.preprocessing import StandardScaler
+from sklearn.mixture import GaussianMixture
+from mpl_toolkits.mplot3d import Axes3D
 
-# Function to load dataset
-def load_dataset(filename):
+def load_dataset(filename:str):
+    """
+    Function to load the CSV dataset.
+    """
     df = pd.read_csv(filename)
     X = df.drop('Label', axis=1).values
-    y_true = df['Label'].values  # For evaluation purposes
+    y_true = df['Label'].values  # Ground truth labels for evaluation
     return X, y_true
 
-def visualize_clustering_results(X, labels, y_true=None, title='', reduce_dim=False):
+def visualize_clustering_2D(X:np.ndarray, 
+                            labels:np.ndarray, 
+                            y_true:np.ndarray = None, 
+                            title:str = ''):
     """
-    Common function to visualize clustering results.
+    Function to visualize clustering results in 2D.
     
     Parameters:
     - X: np.ndarray
-        The original feature matrix.
+        The input feature matrix (2D).
     - labels: np.ndarray
-        The predicted cluster labels from the clustering algorithm.
+        Predicted cluster labels from clustering algorithm
     - y_true: np.ndarray, optional
-        The ground truth labels, if available. Default is None.
+        Ground truth labels, if available. Default is None
     - title: str
-        The title for the plot.
-    - reduce_dim: bool
-        Whether to apply PCA to reduce dimensionality for visualization. Default is False.
+        Title for the plots.
     """
-    
-    # Standardize features for high-dimensional data visualization
-    if reduce_dim and X.shape[1] > 2:
-        pca = PCA(n_components=2)
-        X_vis = pca.fit_transform(X)
-        print("Data will be reduced to 2D using PCA for visualization.")
-    else:
-        X_vis = X
-    
     plt.figure(figsize=(12, 5))
-    
+
     # Plot predicted clusters
     plt.subplot(1, 2, 1)
-    unique_labels = sorted(set(labels))
-    colors = [cm.Spectral(each) for each in np.linspace(0, 1, len(unique_labels))]
-    
+    unique_labels = np.unique(labels)
+    colors = [cm.nipy_spectral(float(i) / len(unique_labels)) for i in range(len(unique_labels))]
+
     for k, col in zip(unique_labels, colors):
-        if k == -1:
-            # Black color for noise in DBSCAN
-            col = [0, 0, 0, 1]
         class_member_mask = (labels == k)
-        xy = X_vis[class_member_mask]
-        plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
-                 markeredgecolor='k', markersize=6, label=f'Cluster {k}')
-    
+        xy = X[class_member_mask]
+        plt.scatter(xy[:, 0], xy[:, 1], c=[col], edgecolor='k', s=50, label=f'Cluster {k}')
+
     plt.title(f'Clustering Results: {title}')
-    plt.xlabel('Component 1')
-    plt.ylabel('Component 2')
+    plt.xlabel('Feature 1')
+    plt.ylabel('Feature 2')
     plt.legend()
-    
-    # Plot ground truth, if provided
+
+    # Plot ground truth if available
     if y_true is not None:
         plt.subplot(1, 2, 2)
-        unique_labels_true = set(y_true)
-        colors_true = [cm.Spectral(each) for each in np.linspace(0, 1, len(unique_labels_true))]
-        
+        unique_labels_true = np.unique(y_true)
+        colors_true = [cm.nipy_spectral(float(i) / len(unique_labels_true)) for i in range(len(unique_labels_true))]
+
         for k, col in zip(unique_labels_true, colors_true):
             class_member_mask = (y_true == k)
-            xy = X_vis[class_member_mask]
-            plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
-                     markeredgecolor='k', markersize=6, label=f'Class {k}')
-        
+            xy = X[class_member_mask]
+            plt.scatter(xy[:, 0], xy[:, 1], c=[col], edgecolor='k', s=50, label=f'Class {k}')
+
         plt.title(f'Ground Truth: {title}')
-        plt.xlabel('Component 1')
-        plt.ylabel('Component 2')
+        plt.xlabel('Feature 1')
+        plt.ylabel('Feature 2')
         plt.legend()
-    
+
     plt.tight_layout()
     plt.show()
 
+def visualize_clustering_3D(X: np.ndarray, 
+                            labels: np.ndarray, 
+                            y_true: np.ndarray = None, 
+                            title: str = ''):
+    """
+    Function to visualize clustering results in 3D.
+    
+    Parameters:
+    - X: np.ndarray
+        The input feature matrix (will be reduced to 3D if necessary).
+    - labels: np.ndarray
+        Predicted cluster labels from clustering algorithm
+    - y_true: np.ndarray, optional
+        Ground truth labels, if available. Default is None
+    - title: str
+        Title for the plots.
+    """
+    # Reduce data to 3D using PCA if necessary
+    if X.shape[1] > 3:
+        pca = PCA(n_components=3, random_state=42)
+        X_vis = pca.fit_transform(X)
+        print("Data has been reduced to 3D using PCA for visualization.")
+    else:
+        X_vis = X
 
-def evaluate_clustering(X_scaled, labels, y_true, n_clusters, title=''):
+    fig = plt.figure(figsize=(16, 8))
+
+    # Adjust marker size here, increase as needed
+    marker_size = 100  # ive fixed this at 100 TODO: fix visibility of 3D plot
+
+    # Plot predicted clusters
+    ax = fig.add_subplot(1, 2, 1, projection='3d')
+    unique_labels = np.unique(labels)
+    colors = [cm.nipy_spectral(float(i) / len(unique_labels)) for i in range(len(unique_labels))]
+
+    for k, col in zip(unique_labels, colors):
+        class_member_mask = (labels == k)
+        xyz = X_vis[class_member_mask]
+        ax.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2], c=[col], edgecolor='k', s=marker_size, alpha=0.7, label=f'Cluster {k}')  # Adjust alpha if needed
+
+    ax.set_title(f'Clustering Results: {title}')
+    ax.set_xlabel('Component 1')
+    ax.set_ylabel('Component 2')
+    ax.set_zlabel('Component 3')
+    ax.legend()
+    ax.grid(True)
+
+    # Plot ground truth if available
+    if y_true is not None:
+        ax2 = fig.add_subplot(1, 2, 2, projection='3d')
+        unique_labels_true = np.unique(y_true)
+        colors_true = [cm.nipy_spectral(float(i) / len(unique_labels_true)) for i in range(len(unique_labels_true))]
+
+        for k, col in zip(unique_labels_true, colors_true):
+            class_member_mask = (y_true == k)
+            xyz = X_vis[class_member_mask]
+            ax2.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2], c=[col], edgecolor='k', s=marker_size, alpha=0.7, label=f'Class {k}')  # Adjust alpha if needed
+
+        ax2.set_title(f'Ground Truth: {title}')
+        ax2.set_xlabel('Component 1')
+        ax2.set_ylabel('Component 2')
+        ax2.set_zlabel('Component 3')
+        ax2.legend()
+        ax2.grid(True)
+
+    plt.tight_layout()
+    plt.show()
+
+def evaluate_clustering(X_scaled: np.ndarray, 
+                        labels: np.ndarray, 
+                        y_true: np.ndarray, 
+                        n_clusters: int, 
+                        title: str = '',
+                        verbose: bool = True):
     """
     Evaluate clustering performance with AMI, V-measure, and Silhouette Score.
     
     Parameters:
     - X_scaled: np.ndarray
-        Scaled features (after normalization or standardization).
+        Scaled feature matrix.
     - labels: np.ndarray
-        Predicted cluster labels from the clustering algorithm.
+        Predicted cluster labels.
     - y_true: np.ndarray
         Ground truth labels.
     - n_clusters: int
-        Number of predicted clusters.
+        Number of clusters.
     - title: str
-        Title for the evaluation printout.
-    
+        Title for the evaluation results.
+    - verbose: bool
+        Whether to print the evaluation results. Default is True.
+        
     Returns:
     - ami: float
         Adjusted Mutual Information.
@@ -111,26 +172,24 @@ def evaluate_clustering(X_scaled, labels, y_true, n_clusters, title=''):
     # Adjusted Mutual Information and V-measure
     ami = adjusted_mutual_info_score(y_true, labels)
     v_measure = v_measure_score(y_true, labels)
-    
-    print(f"{title}")
-    print(f"Adjusted Mutual Information: {ami:.4f}")
-    print(f"V-measure: {v_measure:.4f}")
-    
-    # Silhouette Score (exclude noise points in comparison of pred vs ground truth clusters)
-    if n_clusters > 1:
-        labels_filtered = labels[labels != -1]
-        X_filtered = X_scaled[labels != -1]
-        if len(set(labels_filtered)) > 1:
-            silhouette_avg = silhouette_score(X_filtered, labels_filtered)
-            print(f"Silhouette Score: {silhouette_avg:.4f}")
-        else:
-            silhouette_avg = None
-            print("Silhouette Score: Cannot be calculated with less than 2 clusters after removing noise.")
+
+    if verbose:
+        print(f"{title}")
+        print(f"Adjusted Mutual Information: {ami:.4f}")
+        print(f"V-measure: {v_measure:.4f}")
+
+    # Silhouette Score (only if number of clusters > 1)
+    if n_clusters > 1 and len(np.unique(labels)) > 1:
+        silhouette_avg = silhouette_score(X_scaled, labels)
+        # commented out silhouette score for the internal datasets for now TODO
+        # if verbose:
+        #     print(f"Silhouette Score: {silhouette_avg:.4f}")
     else:
         silhouette_avg = None
-        print("Silhouette Score: Cannot be calculated with less than 2 clusters.")
+        if verbose:
+            print("Silhouette Score: Cannot be calculated with less than 2 clusters.")
 
-    print("=====================================================================")
-    
+    if verbose:
+        print("=====================================================================")
+
     return ami, v_measure, silhouette_avg
-

@@ -83,8 +83,8 @@ def generate_moons_and_circles(output_dir: str) -> None:
     # Save to CSV
     df = pd.DataFrame(X, columns=['Feature1', 'Feature2'])
     df['Label'] = y
-    df.to_csv(os.path.join(output_dir, 'moons_circles_no_overlap.csv'), index=False)
-    print("Moons and Circles generated saved to moons_circles_no_overlap.csv\n")
+    df.to_csv(os.path.join(output_dir, 'moons_circles.csv'), index=False)
+    print("Moons and Circles generated saved to moons_circles.csv\n")
 
 def generate_overlapping_clusters(output_dir:str)->None:
     """
@@ -114,7 +114,7 @@ def generate_high_dimensional_data(output_dir:str)->None:
     """
     print("Generating High-Dimensional Data with Noise...")
     n_samples = 1000
-    n_features = 50  # High dimensionality
+    n_features = 60  # High dimensionality
     n_informative = 10
     n_clusters = 5
 
@@ -122,8 +122,8 @@ def generate_high_dimensional_data(output_dir:str)->None:
     X_informative, y = make_blobs(n_samples=n_samples,
                                   centers=n_clusters,
                                   n_features=n_informative,
-                                  cluster_std=2.5,
-                                  random_state=42)
+                                  cluster_std=2.65,
+                                  random_state=444)
 
     # Generate noise features
     X_noise = np.random.uniform(-10, 10, size=(n_samples, n_features - n_informative))
@@ -135,7 +135,7 @@ def generate_high_dimensional_data(output_dir:str)->None:
     X, y = shuffle(X, y, random_state=42)
 
     # Standardize features for better performance
-    X = StandardScaler().fit_transform(X)
+    # X = StandardScaler().fit_transform(X)
 
     # Save to CSV
     columns = [f'Feature{i+1}' for i in range(n_features)]
@@ -151,7 +151,7 @@ def main():
     # generate_anisotropic_blobs(output_dir)
     # generate_moons_and_circles(output_dir)
     # generate_overlapping_clusters(output_dir)
-    # generate_high_dimensional_data(output_dir)
+    generate_high_dimensional_data(output_dir)
     print("All datasets have been generated and saved.")
 
 if __name__ == '__main__':
